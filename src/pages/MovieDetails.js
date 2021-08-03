@@ -1,26 +1,65 @@
 import React, { Component } from 'react';
-
-/* import * as movieAPI from '../services/movieAPI';
-import { Loading } from '../components'; */
+import PropTypes from 'prop-types';
+import { Link } from 'react-router-dom';
+import * as movieAPI from '../services/movieAPI';
+import Loading from '../components/Loading';
+import MovieInfos from '../components/MovieInfos';
 
 class MovieDetails extends Component {
-  render() {
-    // Change the condition to check the state
-    // if (true) return <Loading />;
+  constructor(props) {
+    super(props);
+    this.state = {
+      loadingStatus: false,
+      movie: {},
+    };
+  }
 
-    const { /* title, */ storyline, imagePath, genre, rating, subtitle } = {};
-    /* const { match } = this.props; */
+  componentDidMount() {
+    this.getMovieInfos();
+  }
+
+  getMovieInfos = () => {
+    this.setState(
+      { loadingStatus: true },
+      async () => {
+        const { match } = this.props;
+        const dataMovie = await movieAPI.getMovie(match.params.id);
+        this.setState({
+          loadingStatus: false,
+          movie: dataMovie,
+        });
+      },
+    );
+  }
+
+  render() {
+    const { loadingStatus, movie } = this.state;
+    const { title, storyline, imagePath, genre, rating, subtitle } = movie;
+    const { match } = this.props;
 
     return (
       <div data-testid="movie-details">
-        <img alt="Movie Cover" src={ `../${imagePath}` } />
-        <p>{ `Subtitle: ${subtitle}` }</p>
-        <p>{ `Storyline: ${storyline}` }</p>
-        <p>{ `Genre: ${genre}` }</p>
-        <p>{ `Rating: ${rating}` }</p>
+        {loadingStatus ? <Loading /> : <MovieInfos
+          title={ title }
+          storyline={ storyline }
+          imagePath={ imagePath }
+          genre={ genre }
+          rating={ rating }
+          subtitle={ subtitle }
+        />}
+        <Link to="/">VOLTAR</Link>
+        <Link to={ `/movies/${match.params.id}/edit` }>EDITAR</Link>
       </div>
     );
   }
 }
+
+MovieDetails.propTypes = {
+  match: PropTypes.shape({
+    params: PropTypes.shape({
+      id: PropTypes.number.isRequired,
+    }),
+  }).isRequired,
+};
 
 export default MovieDetails;
